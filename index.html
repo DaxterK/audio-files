@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SpeakBlitz!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a; 
+      --accent: #00ffcc;
+      --btn-bg: #1a1a1a;
+      --text: white;
+      --glow: #00ffcc;
+    }
+    body {
+      margin: 0;
+      font-family: 'Press Start 2P', cursive;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .active {
+      display: flex;
+    }
+    h1 {
+      animation: flicker 2s infinite;
+      margin-bottom: 20px;
+      font-size: 36px;
+      text-shadow: 0 0 10px var(--glow);
+    }
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+      20%, 24%, 55% { opacity: 0.4; }
+    }
+    button {
+      background: var(--btn-bg);
+      border: 2px solid var(--accent);
+      color: var(--text);
+      padding: 12px 20px;
+      margin: 12px 0;
+      font-size: 16px;
+      width: 100%;
+      max-width: 280px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.7);
+    }
+    select {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 2px solid var(--accent);
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 280px;
+      margin: 12px 0;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2300FFCC' d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/%3E%3C/svg%3E");
+      background-position: right 8px center;
+      background-repeat: no-repeat;
+      padding-right: 30px;
+      text-align: center;
+      text-align-last: center;
+    }
+    #topic {
+      font-size: 18px;
+      margin-top: 30px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    #score {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    svg {
+      width: 120px;
+      height: 120px;
+      transform: rotate(-90deg);
+      margin-top: 20px;
+    }
+    circle {
+      fill: none;
+      stroke-width: 8;
+      cx: 60;
+      cy: 60;
+      r: 52;
+    }
+    .progress-ring__circle {
+      stroke-dasharray: 326.7;
+      stroke-dashoffset: 326.7;
+      transition: stroke-dashoffset 0.3s ease;
+    }
+    #countdown {
+      font-size: 60px;
+      display: none;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--glow);
+    }
+    #go-text {
+      font-size: 40px;
+      display: none;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--glow);
+    }
+    @keyframes flash {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    #next-topic-message {
+      display: none;
+      font-size: 24px;
+      color: var(--accent);
+      margin-top: 20px;
+      animation: flash 1.5s forwards;
+    }
+    #controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 300px;
+      margin-top: 20px;
+    }
+    .entry {
+      margin: 8px 0;
+      font-family: monospace;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    input[type="text"] {
+      width: 100px;
+      font-family: monospace;
+      font-size: 18px;
+      text-align: center;
+      background: black;
+      color: lime;
+      border: 2px solid lime;
+      margin-top: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: var(--btn-bg);
+      padding: 20px;
+      border: 2px solid var(--accent);
+      text-align: center;
+      max-width: 280px;
+      width: 90%;
+      box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    }
+    .no-scores {
+      margin-top: 20px;
+      font-size: 16px;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div id="main-menu" class="screen active">
+    <h1>SpeakBlitz!</h1>
+    <button onclick="showInstructions()">Start Speaking</button>
+    <select id="difficulty">
+      <option value="30">Easy</option>
+      <option value="60">Medium</option>
+      <option value="120">Hard</option>
+      <option value="300">Insane</option>
+    </select>
+    <button onclick="switchScreen('leaderboard-screen'); showLeaderboard()">Leaderboard 🏆</button>
+  </div>
+  <div id="instructions" class="screen">
+    <p>Speak non-stop about 5 random topics!<br/>Click "Next" to skip to the next topic.</p>
+    <button onclick="startGame()">Let’s Go!</button>
+  </div>
+  <div id="gameplay" class="screen">
+    <div id="countdown">3</div>
+    <div id="go-text">GO!</div>
+    <div id="next-topic-message">NEXT TOPIC!</div>
+    <div id="topic"></div>
+    <svg class="progress-ring" id="timer-ring">
+      <circle class="progress-ring__circle" stroke="#00ffcc" />
+    </svg>
+    <div id="score">Score: 0 ➚</div>
+    <div id="controls">
+      <button id="next-button" onclick="stopSpeaking(true)" disabled>➡️ Next</button>
+      <button id="quit-button" onclick="showQuitModal()" disabled>❌ Quit</button>
+    </div>
+  </div>
+  <div id="end-screen" class="screen">
+    <h1>GREAT JOB!</h1>
+    <p>You scored <strong id="final-score"></strong> points!</p>
+    <input type="text" maxlength="3" id="initials" value="AAA"/>
+    <button onclick="saveScore()">Save</button>
+  </div>
+  <div id="leaderboard-screen" class="screen">
+    <h1>LEADERBOARD</h1>
+    <div id="leaderboard-list"></div>
+    <button onclick="switchScreen('main-menu')">⬅️ Back</button>
+  </div>
+  <div id="quit-modal" class="modal">
+    <div class="modal-content">
+      <p>Quit? Your score won't save!</p>
+      <button onclick="closeQuitModal(false)">Cancel</button>
+      <button onclick="closeQuitModal(true)">Quit Anyway</button>
+    </div>
+  </div>
+
+  <!-- Background Music -->
+ <audio id="background-music" autoplay loop>
+  <source src="https://od.lk/s/ODBfNjA4MzgzMjJf/Shiny%20Stacks%20%285%29.mp3" type="audio/mp3">
+  Your browser does not support the audio element.
+</audio>
+
+  <script>
+    let score = 0;
+    let timeLeft = 0;
+    let totalTime = 0;
+    let interval, countdownInterval;
+    let currentTopicIndex = 0;
+    const maxTopics = 5;
+    let isPaused = false;
+    const difficultySelect = document.getElementById("difficulty");
+    const topics = [
+      "Describe your dream vacation", "Talk about your best friend", "Argue for/against AI teachers",
+      "Explain how to make your favorite dish", "What would you do if you won $1 million?",
+      "Describe your favorite food", "Argue whether AI should have rights", "Explain how to tie a shoelace"
+    ];
+    const backgroundMusic = document.getElementById('background-music');
+
+    function showInstructions() {
+      switchScreen('instructions');
+    }
+
+    function startGame() {
+      currentTopicIndex = 0;
+      score = 0;
+      document.getElementById("score").innerText = "Score: 0 ➚";
+      switchScreen('gameplay');
+      showCountdown();
+    }
+
+    function showCountdown() {
+      let count = 3;
+      const cd = document.getElementById("countdown");
+      const topic = document.getElementById("topic");
+      document.getElementById("next-topic-message").style.display = "none";
+      topic.style.display = "block";
+      cd.style.display = "block";
+      cd.textContent = count;
+      document.getElementById("next-button").disabled = true;
+      document.getElementById("quit-button").disabled = true;
+      updateTopic();
+      countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          cd.textContent = count;
+        } else {
+          clearInterval(countdownInterval);
+          cd.style.display = "none";
+          document.getElementById("go-text").style.display = "block";
+          setTimeout(() => {
+            document.getElementById("go-text").style.display = "none";
+            startSpeaking();
+          }, 1000);
+        }
+      }, 1000);
+    }
+
+    function startSpeaking() {
+      timeLeft = parseInt(difficultySelect.value);
+      totalTime = timeLeft;
+      updateTimer();
+      document.getElementById("next-button").disabled = false;
+      document.getElementById("quit-button").disabled = false;
+      interval = setInterval(() => {
+        if (!isPaused) {
+          timeLeft--;
+          updateTimer();
+          score += 1.5;
+          document.getElementById("score").innerText = `Score: ${Math.max(1, Math.round(score))} ➚`;
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            currentTopicIndex++;
+            currentTopicIndex < maxTopics ? showNextTopic() : endGame();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopSpeaking(applyPenalty = false) {
+      clearInterval(interval);
+      if (applyPenalty) {
+        const penalty = Math.floor(timeLeft / 2);
+        score = Math.max(1, score - penalty);
+        document.getElementById("score").innerText = `Score: ${Math.max(1, Math.round(score))} ➚`;
+      }
+      currentTopicIndex++;
+      currentTopicIndex < maxTopics ? showNextTopic() : endGame();
+    }
+
+    function showNextTopic() {
+      document.getElementById("topic").style.display = "none";
+      document.getElementById("timer-ring").style.display = "none";
+      document.getElementById("controls").style.display = "none";
+      document.getElementById("score").style.display = "none";
+      document.getElementById("next-topic-message").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("next-topic-message").style.display = "none";
+        document.getElementById("topic").style.display = "block";
+        document.getElementById("timer-ring").style.display = "block";
+        document.getElementById("controls").style.display = "flex";
+        document.getElementById("score").style.display = "block";
+        showCountdown();
+      }, 1500);
+    }
+
+    function updateTopic() {
+      const randomIndex = Math.floor(Math.random() * topics.length);
+      document.getElementById("topic").textContent = topics[randomIndex];
+    }
+
+    function updateTimer() {
+      const radius = 52;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (timeLeft / totalTime) * circumference;
+      document.querySelector(".progress-ring__circle").style.strokeDashoffset = offset;
+    }
+
+    function endGame() {
+      clearInterval(interval);
+      document.getElementById("final-score").textContent = Math.round(score);
+      switchScreen('end-screen');
+    }
+
+    function saveScore() {
+      const initials = document.getElementById("initials").value.toUpperCase();
+      const diff = difficultySelect.options[difficultySelect.selectedIndex].text;
+      const entry = { initials, score: Math.round(score), timestamp: new Date().toLocaleString(), diff };
+      let scores = JSON.parse(localStorage.getItem("scores") || "[]");
+      scores.push(entry);
+      scores.sort((a, b) => b.score - a.score);
+      localStorage.setItem("scores", JSON.stringify(scores.slice(0, 10)));
+      switchScreen('leaderboard-screen');
+      showLeaderboard();
+    }
+
+    function showLeaderboard() {
+      const list = document.getElementById("leaderboard-list");
+      list.innerHTML = "";
+      const scores = JSON.parse(localStorage.getItem("scores") || "[]");
+      if (scores.length === 0) {
+        const noScores = document.createElement("div");
+        noScores.className = "no-scores";
+        noScores.textContent = "No scores yet! Be the first!";
+        list.appendChild(noScores);
+      } else {
+        scores.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "entry";
+          div.innerHTML = `<span>${s.initials}</span><span>— ${s.score}</span><span>(${s.diff})</span>`;
+          list.appendChild(div);
+        });
+      }
+    }
+
+    function showQuitModal() {
+      isPaused = true;
+      document.getElementById("quit-modal").style.display = "flex";
+    }
+
+    function closeQuitModal(quit) {
+      document.getElementById("quit-modal").style.display = "none";
+      if (quit) {
+        clearInterval(interval);
+        switchScreen('main-menu');
+      } else {
+        isPaused = false;
+      }
+    }
+
+    function switchScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+
+      // Toggle background music
+      if (id === 'main-menu') {
+        backgroundMusic.play().catch(() => {
+          // Autoplay blocked by browser; user interaction may be required
+          console.warn("Autoplay blocked. User interaction required.");
+        });
+      } else {
+        backgroundMusic.pause();
+      }
+    }
+  </script>
+</body>
+</html>
